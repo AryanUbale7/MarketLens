@@ -148,16 +148,10 @@ export const api = {
   // Health Check
   checkBackendHealth: async (): Promise<boolean> => {
     try {
-      const { data } = await axios.get('http://127.0.0.1:8000/'); // Use 127.0.0.1 directly
+      const { data } = await client.get('/');
       return data?.message?.includes('Running') || false;
     } catch {
-      // Try relative check too if direct host fails due to CORS or routing
-      try {
-        const { data } = await client.get('/');
-        return data?.message?.includes('Running') || false;
-      } catch {
-        return false;
-      }
+      return false;
     }
   }
 };
