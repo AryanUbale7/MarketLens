@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API Client configuration
 const client = axios.create({
-  baseURL: '', // Will use the Vite proxy during development
+  baseURL: import.meta.env.VITE_API_URL || '', // Use environment variable in production, fallback to relative path in dev
   headers: {
     'Content-Type': 'application/json',
   },
