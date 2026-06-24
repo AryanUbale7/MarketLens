@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #FFFFFF;
+    color: #111111;
+    @apply antialiased selection:bg-[#9A1C1F]/20 selection:text-[#9A1C1F];
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #111111;
+    letter-spacing: -0.015em;
+  }
+}
+
+/* MarketLens Custom Theme Classes */
+.text-lens-red, .text-et-red {
+  color: #9A1C1F;
+}
+.bg-lens-red, .bg-et-red {
+  background-color: #9A1C1F;
+}
+.border-lens-red, .border-et-red {
+  border-color: #9A1C1F;
+}
+.font-serif-lens, .font-serif-et {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.font-body-lens, .font-body-et {
+  font-family: 'Lora', Georgia, serif;
+}
+
+/* Custom Scrollbar (Compact Terminal style) */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}
+
+/* Ticker Marquee Scroll */
+@keyframes ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker 50s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Terminal Design Elements */
+.terminal-navy {
+  background-color: #0C1E36;
+}
+
+.terminal-accent-gold {
+  color: #B58E2A;
+}
+
+.terminal-border {
+  border: 1px solid #E2E8F0;
+}
+
+.terminal-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  @apply transition-all duration-150 hover:border-slate-400 hover:shadow-sm;
+}
+
+/* Institutional Button Styles */
+.btn-terminal-primary {
+  background-color: #0C1E36;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.725rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.015em;
+  @apply transition-colors duration-150 hover:bg-[#1E293B] shadow-sm select-none cursor-pointer py-1.5 px-3.5 border border-slate-700/25;
+}
+
+.btn-terminal-secondary {
+  border: 1px solid #E2E8F0;
+  background-color: #FFFFFF;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.725rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.015em;
+  @apply transition-colors duration-150 hover:bg-slate-50 hover:text-[#0C1E36] hover:border-slate-400 shadow-sm select-none cursor-pointer py-1.5 px-3.5;
+}
+
+.btn-terminal-green {
+  background-color: #15803D;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.725rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.015em;
+  @apply transition-colors duration-150 hover:bg-[#166534] shadow-sm select-none cursor-pointer py-1.5 px-3.5;
+}
+
+/* Numbers */
+.mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glassmorphism for Tickers */
+.glassmorphic-blur {
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.9);
+}

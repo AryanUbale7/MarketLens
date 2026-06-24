@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+.venv/
+ENV/
+
+# Python cache and files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.env
+
+# Node modules and frontend builds
+node_modules/
+dist/
+.eslintcache
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
