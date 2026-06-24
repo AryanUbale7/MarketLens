@@ -1,0 +1,14 @@
+name: Scheduled News Sync
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Runs every 2 hours
+  workflow_dispatch:      # Allows manual trigger from GitHub UI
+
+jobs:
+  sync-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Ingestion API
+        run: |
+          curl -X POST https://marketlens-qhfe.onrender.com/api/v1/fetch-news
