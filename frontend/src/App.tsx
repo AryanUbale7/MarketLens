@@ -6,10 +6,11 @@ import { Header } from './components/Header';
 import { BreakingNewsTicker } from './components/BreakingNewsTicker';
 import { Dashboard } from './components/Dashboard';
 import { ArticlesPage } from './components/ArticlesPage';
+import { AISearchPage } from './components/AISearchPage';
 import { X, ExternalLink, Sparkles, Cpu, Calendar, Globe, RefreshCw } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'ai-search'>('dashboard');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [selectedSourceGroupFilter, setSelectedSourceGroupFilter] = useState<'regulations' | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -136,6 +137,15 @@ function App() {
             setSelectedCategoryFilter={setSelectedCategoryFilter}
             selectedSourceGroupFilter={selectedSourceGroupFilter}
             setSelectedSourceGroupFilter={setSelectedSourceGroupFilter}
+          />
+        )}
+
+        {activeTab === 'ai-search' && (
+          <AISearchPage 
+            key={refreshKey}
+            onSelectArticle={setSelectedArticle}
+            categories={categories}
+            sources={sources}
           />
         )}
       </div>

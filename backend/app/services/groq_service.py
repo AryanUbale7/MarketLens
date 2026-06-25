@@ -102,3 +102,88 @@ The output must be a valid JSON object matching the following structure exactly:
     except Exception as e:
         logger.error(f"Unexpected error when calling Groq: {e}")
         return fallback_result
+
+def parse_natural_language_query(query: str) -> dict:
+    """
+    Parses a user's natural language search query using Groq (llama-3.3-70b-versatile)
+    to extract search parameters for our financial article database.
+    """
+    fallback_result = {
+        "q": None,
+        "category_id": None,
+        "source_id": None,
+        "source_group": None
+    }
+
+    if not api_key:
+        logger.error("Groq API key is missing. Returning empty query filters.")
+        return fallback_result
+
+    prompt = f"""
+    Analyze the user's natural language search query for a financial articles database and extract search filters.
+    
+    User Query: "{query}"
+
+    Available categories:
+    - 1: Wealth Creation (investments, stocks, mutual funds, equity, sip, etc.)
+    - 2: Wealth Protection (insurance, IRDAI, regulations, health insurance, term plans, etc.)
+    - 3: Wealth Legacy (succession, wills, estate planning, inheritance, nomination, etc.)
+
+    Available sources:
+    - 1: Mint
+    - 2: Economic Times
+    - 3: Business Standard
+    - 4: Moneycontrol
+    - 5: Cafemutual
+    - 6: Value Research
+    - 7: Freefincal
+    - 8: SEBI
+    - 9: RBI
+    - 10: IRDAI
+    - 11: AMFI
+
+    Source groups:
+    - 'regulations': if the user specifies official alerts, circulars, compliance, RBI updates, SEBI rules, IRDAI press releases.
+
+    You must return a valid JSON object matching this structure exactly:
+    {{
+      "q": "A search keyword extracted from the query, or null if no specific keyword is queried.",
+      "category_id": <1, 2, or 3 representing the category, or null if not specified>,
+      "source_id": <an integer between 1 and 11 representing the source, or null if not specified>,
+      "source_group": "regulations" (if user specifically wants regulations/circulars/compliance), or null
+    }}
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a database search assistant. You must return only a valid JSON object with the keys: 'q', 'category_id', 'source_id', and 'source_group'."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1
+        )
+
+        content = response.choices[0].message.content
+        if not content:
+            return fallback_result
+
+        parsed = json.loads(content)
+        validated = {
+            "q": str(parsed["q"]) if parsed.get("q") else None,
+            "category_id": int(parsed["category_id"]) if parsed.get("category_id") in [1, 2, 3] else None,
+            "source_id": int(parsed["source_id"]) if parsed.get("source_id") in range(1, 12) else None,
+            "source_group": "regulations" if parsed.get("source_group") == "regulations" else None
+        }
+        return validated
+
+    except Exception as e:
+        logger.error(f"Error parsing natural language query with Groq: {e}")
+        return fallback_result

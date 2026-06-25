@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
-import { Globe, RefreshCw } from 'lucide-react';
+import { Globe, RefreshCw, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'dashboard' | 'articles';
-  setActiveTab: (tab: 'dashboard' | 'articles') => void;
+  activeTab: 'dashboard' | 'articles' | 'ai-search';
+  setActiveTab: (tab: 'dashboard' | 'articles' | 'ai-search') => void;
   selectedCategoryFilter: number | null;
   setSelectedCategoryFilter: (catId: number | null) => void;
   selectedSourceGroupFilter: 'regulations' | null;
@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const handleNavClick = (
-    tab: 'dashboard' | 'articles',
+    tab: 'dashboard' | 'articles' | 'ai-search',
     categoryId: number | null = null,
     sourceGroup: 'regulations' | null = null
   ) => {
@@ -240,6 +240,19 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               News Wires
+            </button>
+
+            {/* Ask MarketLens (AI) */}
+            <button
+              onClick={() => handleNavClick('ai-search', null, null)}
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'ai-search'
+                  ? 'border-[#059669] text-[#059669]'
+                  : 'border-transparent text-slate-650 hover:text-[#059669] hover:border-slate-350'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-pulse shrink-0" />
+              <span>Ask MarketLens (AI)</span>
             </button>
 
           </nav>

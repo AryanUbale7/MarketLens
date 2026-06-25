@@ -145,6 +145,14 @@ export const api = {
     return data;
   },
   
+  // AI Search
+  aiSearch: async (query: string): Promise<{ filters: Record<string, any>; articles: Article[] }> => {
+    const { data } = await client.get<{ filters: Record<string, any>; articles: Article[] }>('/api/v1/ai/search', {
+      params: { query }
+    });
+    return data;
+  },
+  
   // Health Check
   checkBackendHealth: async (): Promise<boolean> => {
     try {
