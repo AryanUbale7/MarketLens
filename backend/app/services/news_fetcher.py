@@ -333,20 +333,38 @@ def save_articles(db: Session, articles: list) -> tuple:
 # =========================
 
 def fetch_all_news(db: Session) -> dict:
-    logger.info("Executing comprehensive news fetch from all 11 sources...")
+    import concurrent.futures
+    logger.info("Executing comprehensive parallel news fetch from all 11 sources...")
 
     source_results = {}
     all_articles = []
     failed_sources = 0
     online_sources = 0
 
-    for source_id, source_info in SOURCE_FEEDS.items():
+    # Parallelize the network fetching
+    def fetch_task(source_id, source_info):
         name = source_info["name"]
         rss_url = source_info["rss_url"]
-        
-        logger.info(f"Fetching: {name} ({rss_url or 'NO RSS'})")
+        logger.info(f"Starting parallel fetch for: {name}")
         articles, status = fetch_source_articles(rss_url, source_id)
-        
+        return source_id, name, articles, status
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=11) as executor:
+        futures = [
+            executor.submit(fetch_task, source_id, source_info)
+            for source_id, source_info in SOURCE_FEEDS.items()
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                results.append(future.result())
+            except Exception as e:
+                logger.error(f"Error in parallel fetch task: {e}")
+
+    # Process database writes sequentially in the main thread
+    results.sort(key=lambda x: x[0])  # Sort by source_id to match original order
+
+    for source_id, name, articles, status in results:
         source_results[name] = {
             "count": len(articles),
             "status": status
