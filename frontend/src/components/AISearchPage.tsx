@@ -58,7 +58,7 @@ export const AISearchPage: React.FC<AISearchPageProps> = ({
   ];
 
   return (
-    <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 py-6 w-full bg-white">
+    <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 py-6 w-full bg-white animate-fade-in">
       
       {/* Page Header */}
       <div className="text-center mb-8">

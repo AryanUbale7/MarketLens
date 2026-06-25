@@ -25,6 +25,15 @@ class ArticleResponse(BaseModel):
     priority_score: int
     published_date: Optional[datetime]
     created_at: datetime
+    
+    # Verification details
+    verified: bool = False
+    verified_at: Optional[datetime] = None
+    verification_status: str = "Pending"
+    http_status: Optional[int] = None
+    resolved_domain: Optional[str] = None
+    title_similarity: Optional[float] = None
+    verification_errors: Optional[str] = None
 
     class Config:
         from_attributes = True

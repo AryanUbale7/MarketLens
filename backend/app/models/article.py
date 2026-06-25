@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Float
 from app.database.base import Base
 from datetime import datetime
 
@@ -19,5 +19,14 @@ class Article(Base):
     why_it_matters = Column(Text)
 
     priority_score = Column(Integer, default=0)
+
+    # Verification columns
+    verified = Column(Boolean, default=False)
+    verified_at = Column(DateTime, nullable=True)
+    verification_status = Column(String(50), default="Pending")
+    http_status = Column(Integer, nullable=True)
+    resolved_domain = Column(String(250), nullable=True)
+    title_similarity = Column(Float, nullable=True)
+    verification_errors = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)

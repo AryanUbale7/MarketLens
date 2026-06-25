@@ -21,9 +21,10 @@ def process_article_ai(
     )
 @router.post("/process-all-articles")
 def process_all_articles_ai(
+    limit: int = 5,
     db: Session = Depends(get_db)
 ):
-    return process_all_articles(db)
+    return process_all_articles(db, limit)
 
 @router.get("/ai/search")
 def ai_search(

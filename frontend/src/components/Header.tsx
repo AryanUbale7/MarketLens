@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
-import { Globe, RefreshCw, Sparkles } from 'lucide-react';
+import { Globe, RefreshCw, Sparkles, Sun, Moon, ShieldCheck } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'dashboard' | 'articles' | 'ai-search';
-  setActiveTab: (tab: 'dashboard' | 'articles' | 'ai-search') => void;
+  activeTab: 'dashboard' | 'articles' | 'ai-search' | 'admin-verification';
+  setActiveTab: (tab: 'dashboard' | 'articles' | 'ai-search' | 'admin-verification') => void;
   selectedCategoryFilter: number | null;
   setSelectedCategoryFilter: (catId: number | null) => void;
   selectedSourceGroupFilter: 'regulations' | null;
   setSelectedSourceGroupFilter: (filter: 'regulations' | null) => void;
   onSync: () => void;
   isSyncing: boolean;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,6 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   setSelectedSourceGroupFilter,
   onSync,
   isSyncing,
+  theme,
+  onToggleTheme,
 }) => {
   const [time, setTime] = useState<string>('');
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
@@ -76,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const handleNavClick = (
-    tab: 'dashboard' | 'articles' | 'ai-search',
+    tab: 'dashboard' | 'articles' | 'ai-search' | 'admin-verification',
     categoryId: number | null = null,
     sourceGroup: 'regulations' | null = null
   ) => {
@@ -152,16 +156,32 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {backendHealthy && (
-            <button 
-              onClick={onSync} 
-              disabled={isSyncing}
-              className="flex items-center gap-2 bg-[#9A1C1F] hover:bg-[#801719] disabled:bg-slate-400 text-white font-bold py-2.5 px-5 rounded-sm text-[11px] uppercase tracking-widest cursor-pointer shadow-sm select-none transition-all duration-150 border-none shrink-0"
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={onToggleTheme}
+              className="flex items-center justify-center p-2.5 rounded-sm border border-slate-200 bg-white text-slate-550 hover:text-[#9A1C1F] hover:bg-slate-50 cursor-pointer shadow-xs transition-all duration-150 shrink-0"
+              aria-label="Toggle Theme"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span>{isSyncing ? 'SYNCING WIRE FEEDS...' : 'SYNC WIRE FEEDS'}</span>
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-550" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-650" />
+              )}
             </button>
-          )}
+
+            {backendHealthy && (
+              <button 
+                onClick={onSync} 
+                disabled={isSyncing}
+                className="flex items-center gap-2 bg-[#9A1C1F] hover:bg-[#801719] disabled:bg-slate-400 text-white font-bold py-2.5 px-5 rounded-sm text-[11px] uppercase tracking-widest cursor-pointer shadow-sm select-none transition-all duration-150 border-none shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'SYNCING WIRE FEEDS...' : 'SYNC WIRE FEEDS'}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -253,6 +273,19 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-pulse shrink-0" />
               <span>Ask MarketLens (AI)</span>
+            </button>
+
+            {/* Verification Center */}
+            <button
+              onClick={() => handleNavClick('admin-verification', null, null)}
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'admin-verification'
+                  ? 'border-[#0C1E36] text-[#0C1E36]'
+                  : 'border-transparent text-slate-600 hover:text-[#0C1E36] hover:border-slate-300'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>Verification Center</span>
             </button>
 
           </nav>

@@ -33,11 +33,13 @@ def process_article(article_id: int, db: Session):
     }
 
 
-def process_all_articles(db: Session):
+def process_all_articles(db: Session, limit: int = 5):
 
     articles = (
         db.query(Article)
         .filter(Article.summary.is_(None))
+        .order_by(Article.created_at.desc())
+        .limit(limit)
         .all()
     )
 

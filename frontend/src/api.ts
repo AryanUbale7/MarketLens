@@ -32,6 +32,54 @@ export interface Article {
   priority_score: number;
   published_date: string | null;
   created_at: string;
+  
+  // Verification details
+  verified?: boolean;
+  verified_at?: string | null;
+  verification_status?: string;
+  http_status?: number | null;
+  resolved_domain?: string | null;
+  title_similarity?: number | null;
+  verification_errors?: string | null;
+}
+
+export interface VerificationProgress {
+  is_running: boolean;
+  current_index: number;
+  total_to_check: number;
+  current_article_title: string;
+  verified_count: number;
+  warning_count: number;
+  failed_count: number;
+  start_time: string | null;
+  end_time: string | null;
+  average_response_time_ms: number;
+  total_response_time_ms: number;
+  last_successful_run: string | null;
+}
+
+export interface VerificationResultsResponse {
+  summary: {
+    total_checked: number;
+    verified: number;
+    warnings: number;
+    failed: number;
+    verification_score: number;
+    average_response_time_ms: number;
+  };
+  source_health: Array<{
+    id: number;
+    name: string;
+    expected_domain: string;
+    status: string;
+    last_verified_at: string | null;
+  }>;
+  pagination: {
+    total_filtered: number;
+    skip: number;
+    limit: number;
+  };
+  articles: Article[];
 }
 
 export interface DashboardStats {
@@ -161,5 +209,27 @@ export const api = {
     } catch {
       return false;
     }
+  },
+  
+  // Admin Verification Center
+  triggerVerification: async (limit: number = 100): Promise<{ message: string; articles_queued: number }> => {
+    const { data } = await client.post<{ message: string; articles_queued: number }>('/api/v1/admin/verify-articles', null, {
+      params: { limit }
+    });
+    return data;
+  },
+
+  getVerificationProgress: async (): Promise<VerificationProgress> => {
+    const { data } = await client.get<VerificationProgress>('/api/v1/admin/verification-progress');
+    return data;
+  },
+
+  getVerificationResults: async (params?: {
+    status?: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<VerificationResultsResponse> => {
+    const { data } = await client.get<VerificationResultsResponse>('/api/v1/admin/verification-results', { params });
+    return data;
   }
 };

@@ -26,6 +26,17 @@
     <meta property="twitter:description" content="Access real-time syndicated financial news wires, compliance alerts, and smart market analytics in one premium dashboard." />
     <meta property="twitter:image" content="https://marketlens-48022.web.app/favicon.png" />
 
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+
     <title>MarketLens - Premium Financial Intelligence</title>
   </head>
   <body>

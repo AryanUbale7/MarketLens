@@ -313,7 +313,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const totalSources = Object.keys(sourceHealth).length || 11;
 
   return (
-    <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full bg-white">
+    <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full bg-white animate-fade-in">
       
       {/* COGNITIVE SEARCH BANNER */}
       <div className="border border-slate-205 bg-[#FAF8F5] p-4 rounded-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

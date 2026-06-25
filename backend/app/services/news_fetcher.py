@@ -269,8 +269,10 @@ def detect_category(title: str, source_id: int = None) -> int:
 
     # Category 3: Wealth Legacy
     wealth_legacy_keywords = [
-        r"wills?", r"estate\s+planning", r"inheritance",
-        r"nomination", r"succession", r"legacy"
+        r"\bwills\b", r"\bestate\s+planning\b", r"\binheritance\b",
+        r"\bnomination\b", r"\bnominations\b", r"\bsuccession\b", r"\blegacy\b",
+        r"\bwill-writing\b", r"\bwriting\s+a\s+will\b", r"\bmake\s+a\s+will\b",
+        r"\bprobate\b", r"\blegal\s+heir\b", r"\btransmission\s+of\s+shares\b"
     ]
     for pattern in wealth_legacy_keywords:
         if re.search(pattern, t):

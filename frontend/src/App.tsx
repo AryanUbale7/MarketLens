@@ -7,13 +7,36 @@ import { BreakingNewsTicker } from './components/BreakingNewsTicker';
 import { Dashboard } from './components/Dashboard';
 import { ArticlesPage } from './components/ArticlesPage';
 import { AISearchPage } from './components/AISearchPage';
+import { AdminVerification } from './components/AdminVerification';
 import { X, ExternalLink, Sparkles, Cpu, Calendar, Globe, RefreshCw } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'ai-search'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'ai-search' | 'admin-verification'>('dashboard');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [selectedSourceGroupFilter, setSelectedSourceGroupFilter] = useState<'regulations' | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      return 'dark';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
   
   // Cache categories and sources globally
   const [categories, setCategories] = useState<Category[]>([]);
@@ -110,6 +133,8 @@ function App() {
         setSelectedSourceGroupFilter={setSelectedSourceGroupFilter}
         onSync={handleSync}
         isSyncing={isSyncing}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Breaking News Ticker */}
@@ -146,6 +171,12 @@ function App() {
             onSelectArticle={setSelectedArticle}
             categories={categories}
             sources={sources}
+          />
+        )}
+
+        {activeTab === 'admin-verification' && (
+          <AdminVerification 
+            onSelectArticle={setSelectedArticle}
           />
         )}
       </div>

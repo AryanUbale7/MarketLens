@@ -26,7 +26,7 @@ def migrate():
         from sqlalchemy import inspect
         inspector = inspect(engine)
         columns = [col['name'] for col in inspector.get_columns('sources')]
-        print("Existing columns:", columns)
+        print("Existing sources columns:", columns)
         
         if 'rss_url' not in columns:
             conn.execute(text("ALTER TABLE sources ADD COLUMN rss_url VARCHAR(500);"))
@@ -40,6 +40,33 @@ def migrate():
         if 'last_fetched_at' not in columns:
             conn.execute(text("ALTER TABLE sources ADD COLUMN last_fetched_at TIMESTAMP WITHOUT TIME ZONE;"))
             print("Added last_fetched_at column.")
+
+        # Migrate articles table
+        print("Migrating articles table...")
+        columns_articles = [col['name'] for col in inspector.get_columns('articles')]
+        print("Existing articles columns:", columns_articles)
+        
+        if 'verified' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN verified BOOLEAN DEFAULT FALSE;"))
+            print("Added verified column.")
+        if 'verified_at' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN verified_at TIMESTAMP WITHOUT TIME ZONE;"))
+            print("Added verified_at column.")
+        if 'verification_status' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN verification_status VARCHAR(50) DEFAULT 'Pending';"))
+            print("Added verification_status column.")
+        if 'http_status' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN http_status INTEGER;"))
+            print("Added http_status column.")
+        if 'resolved_domain' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN resolved_domain VARCHAR(250);"))
+            print("Added resolved_domain column.")
+        if 'title_similarity' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN title_similarity DOUBLE PRECISION;"))
+            print("Added title_similarity column.")
+        if 'verification_errors' not in columns_articles:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN verification_errors TEXT;"))
+            print("Added verification_errors column.")
 
         print("Migration finished successfully.")
 

@@ -146,7 +146,7 @@ export const ArticlesPage: React.FC<ArticlesPageProps> = ({
   };
 
   return (
-    <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full bg-white space-y-4">
+    <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full bg-white space-y-4 animate-fade-in">
       
       {/* HEADER SECTION */}
       <div className="border-b border-slate-200 pb-2">
