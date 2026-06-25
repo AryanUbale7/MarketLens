@@ -129,42 +129,39 @@ export const Header: React.FC<HeaderProps> = ({
                   backendHealthy === null ? 'bg-slate-300' : backendHealthy ? 'bg-emerald-600' : 'bg-[#9A1C1F]'
                 }`}></span>
               </span>
-              <span className="text-[9px] font-bold text-slate-650">
+              <span className="text-[9px] font-bold text-slate-600">
                 {backendHealthy === null ? 'SYNC' : backendHealthy ? 'CONNECTED' : 'DISCONNECTED'}
               </span>
             </div>
-
-            {backendHealthy && (
-              <>
-                <span className="text-slate-300">|</span>
-                <button 
-                  onClick={onSync} 
-                  disabled={isSyncing}
-                  className="flex items-center space-x-1 text-[9px] font-bold text-slate-600 hover:text-[#9A1C1F] cursor-pointer disabled:opacity-50 select-none border-none bg-transparent"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                  <span>{isSyncing ? 'SYNCING...' : 'SYNC FEEDS'}</span>
-                </button>
-              </>
-            )}
           </div>
 
         </div>
       </div>
 
       {/* 2. THE MARKETLENS BRAND MASTHEAD */}
-      <div className="py-5 bg-white text-center border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center relative">
-          <div className="cursor-pointer select-none animate-fade-in" onClick={() => handleNavClick('dashboard', null, null)}>
+      <div className="py-5 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="cursor-pointer select-none animate-fade-in text-center md:text-left" onClick={() => handleNavClick('dashboard', null, null)}>
             <h1 className="font-serif-lens text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-none uppercase">
               MarketLens
             </h1>
-            <div className="flex items-center justify-center gap-1.5 mt-1.5">
+            <div className="flex items-center justify-center md:justify-start gap-1.5 mt-1.5">
               <span className="text-[10px] uppercase font-bold tracking-widest bg-[#9a1c1f] text-white px-2.5 py-0.5 rounded-xs font-sans">
                 Financial Intelligence for Modern Investors
               </span>
             </div>
           </div>
+
+          {backendHealthy && (
+            <button 
+              onClick={onSync} 
+              disabled={isSyncing}
+              className="flex items-center gap-2 bg-[#9A1C1F] hover:bg-[#801719] disabled:bg-slate-400 text-white font-bold py-2.5 px-5 rounded-sm text-[11px] uppercase tracking-widest cursor-pointer shadow-sm select-none transition-all duration-150 border-none shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'SYNCING WIRE FEEDS...' : 'SYNC WIRE FEEDS'}</span>
+            </button>
+          )}
         </div>
       </div>
 
