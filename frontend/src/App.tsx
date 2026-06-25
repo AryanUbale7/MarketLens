@@ -53,6 +53,25 @@ function App() {
     fetchMetadata();
   }, []);
 
+  // Dynamic SEO page title updates
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      if (selectedCategoryFilter === 1) {
+        document.title = 'Wealth Creation Insights & News - MarketLens';
+      } else if (selectedCategoryFilter === 2) {
+        document.title = 'Wealth Protection Compliance Wires - MarketLens';
+      } else if (selectedCategoryFilter === 3) {
+        document.title = 'Wealth Legacy & Estate Planning - MarketLens';
+      } else if (selectedSourceGroupFilter === 'regulations') {
+        document.title = 'Financial Regulations Tracker (SEBI, RBI, IRDAI) - MarketLens';
+      } else {
+        document.title = 'MarketLens - Premium Financial Intelligence Dashboard';
+      }
+    } else if (activeTab === 'articles') {
+      document.title = 'Real-Time Financial News Wires Database - MarketLens';
+    }
+  }, [activeTab, selectedCategoryFilter, selectedSourceGroupFilter]);
+
   const getCategoryName = (id: number) => {
     return categories.find(c => c.id === id)?.name || `Category ${id}`;
   };
