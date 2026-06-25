@@ -72,7 +72,12 @@ def get_results(
     query = db.query(Article).filter(Article.verified == True)
     
     if status:
-        query = query.filter(Article.verification_status == status)
+        if status == 'Verified':
+            query = query.filter(Article.verification_status.in_(['Verified', 'Verified with Minor Differences']))
+        elif status == 'Warning':
+            query = query.filter(Article.verification_status.in_(['Needs Review', 'Warning']))
+        else:
+            query = query.filter(Article.verification_status == status)
         
     total_filtered = query.count()
     articles = (
@@ -86,12 +91,17 @@ def get_results(
     # 2. Compute summary metrics from verified articles
     total_checked = db.query(Article).filter(Article.verified == True).count()
     verified_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified').count()
-    warning_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Warning').count()
+    verified_minor_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified with Minor Differences').count()
+    needs_review_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Needs Review').count()
     failed_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Failed').count()
+    warning_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Warning').count()
+    
+    total_verified = verified_count + verified_minor_count
+    total_warnings = needs_review_count + warning_count
     
     verification_score = 0.0
     if total_checked > 0:
-        verification_score = (verified_count / total_checked) * 100
+        verification_score = (total_verified / total_checked) * 100
 
     # 3. Source Ingestion Health Check
     sources = db.query(Source).all()
@@ -131,8 +141,8 @@ def get_results(
     return {
         "summary": {
             "total_checked": total_checked,
-            "verified": verified_count,
-            "warnings": warning_count,
+            "verified": total_verified,
+            "warnings": total_warnings,
             "failed": failed_count,
             "verification_score": round(verification_score, 1),
             "average_response_time_ms": round(avg_latency_ms, 1)
