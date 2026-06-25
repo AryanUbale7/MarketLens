@@ -18,6 +18,23 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
   const [analyzingModal, setAnalyzingModal] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    try {
+      setIsSyncing(true);
+      await api.fetchNews();
+      await fetchMetadata();
+      setRefreshKey(prev => prev + 1);
+    } catch (err) {
+      console.error(err);
+      alert('News sync failed. Verify backend configurations.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const fetchMetadata = async () => {
     try {
@@ -71,15 +88,18 @@ function App() {
         setSelectedCategoryFilter={setSelectedCategoryFilter}
         selectedSourceGroupFilter={selectedSourceGroupFilter}
         setSelectedSourceGroupFilter={setSelectedSourceGroupFilter}
+        onSync={handleSync}
+        isSyncing={isSyncing}
       />
 
       {/* Breaking News Ticker */}
-      <BreakingNewsTicker onSelectArticle={setSelectedArticle} />
+      <BreakingNewsTicker key={refreshKey} onSelectArticle={setSelectedArticle} />
 
       {/* 3. MAIN CONTENT CONTAINER */}
       <div className="flex-grow flex flex-col">
         {activeTab === 'dashboard' && (
           <Dashboard 
+            key={refreshKey}
             onNavigateToArticles={() => setActiveTab('articles')}
             onSelectArticle={setSelectedArticle}
             selectedCategoryFilter={selectedCategoryFilter}
@@ -89,6 +109,7 @@ function App() {
         
         {activeTab === 'articles' && (
           <ArticlesPage 
+            key={refreshKey}
             onSelectArticle={setSelectedArticle}
             categories={categories}
             sources={sources}

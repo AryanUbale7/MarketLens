@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
-import { Globe } from 'lucide-react';
+import { Globe, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'dashboard' | 'articles';
@@ -9,6 +9,8 @@ interface HeaderProps {
   setSelectedCategoryFilter: (catId: number | null) => void;
   selectedSourceGroupFilter: 'regulations' | null;
   setSelectedSourceGroupFilter: (filter: 'regulations' | null) => void;
+  onSync: () => void;
+  isSyncing: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
   setSelectedCategoryFilter,
   selectedSourceGroupFilter,
   setSelectedSourceGroupFilter,
+  onSync,
+  isSyncing,
 }) => {
   const [time, setTime] = useState<string>('');
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
@@ -125,10 +129,24 @@ export const Header: React.FC<HeaderProps> = ({
                   backendHealthy === null ? 'bg-slate-300' : backendHealthy ? 'bg-emerald-600' : 'bg-[#9A1C1F]'
                 }`}></span>
               </span>
-              <span className="text-[9px] font-bold text-slate-600">
+              <span className="text-[9px] font-bold text-slate-650">
                 {backendHealthy === null ? 'SYNC' : backendHealthy ? 'CONNECTED' : 'DISCONNECTED'}
               </span>
             </div>
+
+            {backendHealthy && (
+              <>
+                <span className="text-slate-300">|</span>
+                <button 
+                  onClick={onSync} 
+                  disabled={isSyncing}
+                  className="flex items-center space-x-1 text-[9px] font-bold text-slate-600 hover:text-[#9A1C1F] cursor-pointer disabled:opacity-50 select-none border-none bg-transparent"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>{isSyncing ? 'SYNCING...' : 'SYNC FEEDS'}</span>
+                </button>
+              </>
+            )}
           </div>
 
         </div>
