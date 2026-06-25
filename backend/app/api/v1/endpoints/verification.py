@@ -73,7 +73,12 @@ def get_results(
     
     if status:
         if status == 'Verified':
-            query = query.filter(Article.verification_status.in_(['Verified', 'Verified with Minor Differences']))
+            query = query.filter(Article.verification_status.in_([
+                'Verified', 
+                'Verified with Minor Differences', 
+                'Verified via Publisher Metadata', 
+                'Verified via Metadata'
+            ]))
         elif status == 'Warning':
             query = query.filter(Article.verification_status.in_(['Needs Review', 'Warning']))
         else:
@@ -92,11 +97,13 @@ def get_results(
     total_checked = db.query(Article).filter(Article.verified == True).count()
     verified_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified').count()
     verified_minor_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified with Minor Differences').count()
+    verified_pub_meta = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified via Publisher Metadata').count()
+    verified_meta = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Verified via Metadata').count()
     needs_review_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Needs Review').count()
     failed_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Failed').count()
     warning_count = db.query(Article).filter(Article.verified == True, Article.verification_status == 'Warning').count()
     
-    total_verified = verified_count + verified_minor_count
+    total_verified = verified_count + verified_minor_count + verified_pub_meta + verified_meta
     total_warnings = needs_review_count + warning_count
     
     verification_score = 0.0
@@ -116,11 +123,11 @@ def get_results(
             .first()
         )
         
-        status_label = "PENDING"
+        status_label = "OFFLINE"
         last_verified_at = None
         if latest_verified:
             last_verified_at = latest_verified.verified_at.isoformat()
-            if latest_verified.verification_status in ["Verified", "Warning"]:
+            if latest_verified.verification_status != "Failed":
                 status_label = "ONLINE"
             else:
                 status_label = "OFFLINE"

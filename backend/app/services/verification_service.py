@@ -153,54 +153,113 @@ def extract_metadata_content(soup: BeautifulSoup) -> str:
             
     return " ".join(parts).strip()
 
-# Dedicated Validators for regulatory websites
+# Dedicated Validators for regulatory and specific websites
 def validate_sebi(soup: BeautifulSoup) -> tuple[str, str]:
-    title = ""
-    if soup.title and soup.title.string:
-        title = soup.title.string.strip()
     title_el = soup.find(class_="heading") or soup.find("h2") or soup.find("h1")
-    if title_el:
-        title = title_el.get_text().strip()
-        
-    content_div = soup.find(class_="card-body") or soup.find(id="content") or soup.find(class_="inner-content") or soup.find(id="paratext")
-    content = content_div.get_text().strip() if content_div else ""
-    return title, content
+    title = title_el.get_text().strip() if title_el else ""
+    body_el = soup.find(id="paratext") or soup.find(class_="card-body") or soup.find(class_="inner-content")
+    body = body_el.get_text().strip() if body_el else ""
+    return title, body
 
 def validate_rbi(soup: BeautifulSoup) -> tuple[str, str]:
-    title = ""
-    if soup.title and soup.title.string:
-        title = soup.title.string.strip()
-    title_el = soup.find(class_="page-title") or soup.find("h1") or soup.find(class_="heading")
-    if title_el:
-        title = title_el.get_text().strip()
-        
-    content_div = soup.find(id="section_content") or soup.find(class_="table-responsive") or soup.find(id="table1") or soup.find(class_="content")
-    content = content_div.get_text().strip() if content_div else ""
-    return title, content
+    title_el = soup.find("td", class_="tableheader") or soup.find(class_="page-title") or soup.find("h1")
+    title = title_el.get_text().strip() if title_el else ""
+    body_el = soup.find("table", class_="tablebg") or soup.find(id="section_content") or soup.find(class_="table-responsive")
+    body = body_el.get_text().strip() if body_el else ""
+    return title, body
 
 def validate_irdai(soup: BeautifulSoup) -> tuple[str, str]:
-    title = ""
-    if soup.title and soup.title.string:
-        title = soup.title.string.strip()
     title_el = soup.find("h1") or soup.find(class_="title")
-    if title_el:
-        title = title_el.get_text().strip()
-        
-    content_div = soup.find(class_="content") or soup.find(id="content") or soup.find(class_="inner-page") or soup.find(class_="main-content")
-    content = content_div.get_text().strip() if content_div else ""
-    return title, content
+    title = title_el.get_text().strip() if title_el else ""
+    body_el = soup.find(class_="content") or soup.find(id="content") or soup.find(class_="inner-page") or soup.find(class_="main-content")
+    body = body_el.get_text().strip() if body_el else ""
+    return title, body
 
 def validate_amfi(soup: BeautifulSoup) -> tuple[str, str]:
-    title = ""
+    title_el = soup.find("h1") or soup.find(class_="title") or soup.find(class_="heading")
+    title = title_el.get_text().strip() if title_el else ""
+    body_el = soup.find(class_="content") or soup.find(id="content") or soup.find(class_="main-content") or soup.find(class_="inner-content")
+    body = body_el.get_text().strip() if body_el else ""
+    return title, body
+
+def validate_business_standard(soup: BeautifulSoup) -> tuple[str, str]:
+    title_el = soup.find("h1") or soup.find(class_="story-title")
+    title = title_el.get_text().strip() if title_el else ""
+    body_el = soup.find(class_="p-content") or soup.find(class_="story-content") or soup.find(class_="story-text") or soup.find(id="story-content")
+    body = body_el.get_text().strip() if body_el else ""
+    return title, body
+
+def get_best_title_similarity(article_title: str, soup: BeautifulSoup) -> tuple[str, float]:
+    """
+    Extracts all candidate titles from various tags and metadata fields,
+    calculates their normalized similarity against the article title,
+    and returns the best candidate title and the highest similarity score.
+    """
+    candidates = []
+    
+    # 1. HTML Title
     if soup.title and soup.title.string:
-        title = soup.title.string.strip()
-    title_el = soup.find("h1") or soup.find(class_="title")
-    if title_el:
-        title = title_el.get_text().strip()
+        candidates.append(soup.title.string.strip())
         
-    content_div = soup.find(class_="content") or soup.find(id="content") or soup.find(class_="main-content") or soup.find(class_="inner-content")
-    content = content_div.get_text().strip() if content_div else ""
-    return title, content
+    # 2. OpenGraph Title
+    og_title = soup.find("meta", property="og:title") or soup.find("meta", attrs={"name": "og:title"})
+    if og_title and og_title.get("content"):
+        candidates.append(og_title["content"].strip())
+        
+    # 3. Twitter Title
+    tw_title = soup.find("meta", property="twitter:title") or soup.find("meta", attrs={"name": "twitter:title"}) or soup.find("meta", property="twitter:image:alt")
+    if tw_title and tw_title.get("content"):
+        candidates.append(tw_title["content"].strip())
+        
+    # 4. JSON-LD Headline / Name
+    for script in soup.find_all("script", type="application/ld+json"):
+        if script.string:
+            try:
+                data = json.loads(script.string)
+                def extract_titles(obj):
+                    res = []
+                    if isinstance(obj, str):
+                        res.append(obj)
+                    elif isinstance(obj, dict):
+                        for k, v in obj.items():
+                            if k in ["headline", "name", "alternativeHeadline"]:
+                                if isinstance(v, str):
+                                    res.append(v)
+                            elif isinstance(v, (dict, list)):
+                                res.extend(extract_titles(v))
+                    elif isinstance(obj, list):
+                        for item in obj:
+                            res.extend(extract_titles(item))
+                    return res
+                candidates.extend(extract_titles(data))
+            except Exception:
+                pass
+                
+    # 5. First H1
+    h1 = soup.find("h1")
+    if h1:
+        candidates.append(h1.get_text().strip())
+        
+    # 6. First H2
+    h2 = soup.find("h2")
+    if h2:
+        candidates.append(h2.get_text().strip())
+
+    if not candidates:
+        return "", 0.0
+        
+    best_title = ""
+    best_similarity = -1.0
+    
+    for cand in candidates:
+        if not cand:
+            continue
+        sim = calculate_similarity(article_title, cand)
+        if sim > best_similarity:
+            best_similarity = sim
+            best_title = cand
+            
+    return best_title, max(0.0, best_similarity)
 
 def verify_single_article(article_id: int, db: Session) -> dict:
     """
@@ -225,6 +284,7 @@ def verify_single_article(article_id: int, db: Session) -> dict:
 
     url_to_verify = article.url
     is_google_news = "news.google.com" in urlparse(article.url).netloc.lower()
+    gnews_decoded_ok = False
     
     # 1. Resolve Google News Redirect
     if is_google_news:
@@ -232,10 +292,13 @@ def verify_single_article(article_id: int, db: Session) -> dict:
             dec_res = gnewsdecoder(article.url)
             if dec_res.get("status") and dec_res.get("decoded_url"):
                 url_to_verify = dec_res["decoded_url"]
+                gnews_decoded_ok = True
             else:
                 errors.append(f"Google News Decode Failed: {dec_res.get('message', 'Unknown error')}")
         except Exception as e:
             errors.append(f"Google News Decode Exception: {str(e)}")
+    else:
+        gnews_decoded_ok = True
 
     # Initialize domain variables
     parsed = urlparse(url_to_verify)
@@ -250,6 +313,10 @@ def verify_single_article(article_id: int, db: Session) -> dict:
             domain_correct = True
 
     has_content = False
+    metadata_text = ""
+    body_text = ""
+    best_extracted_title = ""
+    similarity = 0.0
     latency_ms = 0.0
 
     try:
@@ -272,66 +339,66 @@ def verify_single_article(article_id: int, db: Session) -> dict:
                 domain_correct = False
                 errors.append("Wrong Domain")
         
+        # Parse content if page loaded (even on 403 or other codes since some servers block bots but return HTML with meta tags)
+        soup = BeautifulSoup(response.content, "html.parser")
+        
+        # Apply dedicated parser adapters (NO generic parsing for these 5 sources)
+        is_regulatory_or_bs = False
+        if article.source_id == 8: # SEBI
+            is_regulatory_or_bs = True
+            page_title, body_text = validate_sebi(soup)
+        elif article.source_id == 9: # RBI
+            is_regulatory_or_bs = True
+            page_title, body_text = validate_rbi(soup)
+        elif article.source_id == 10: # IRDAI
+            is_regulatory_or_bs = True
+            page_title, body_text = validate_irdai(soup)
+        elif article.source_id == 11: # AMFI
+            is_regulatory_or_bs = True
+            page_title, body_text = validate_amfi(soup)
+        elif expected == "business-standard.com" or resolved_domain == "business-standard.com":
+            is_regulatory_or_bs = True
+            page_title, body_text = validate_business_standard(soup)
+
+        # Fallback to general parsing ONLY for other sources
+        if not is_regulatory_or_bs:
+            temp_soup = BeautifulSoup(response.content, "html.parser")
+            if temp_soup.title and temp_soup.title.string:
+                page_title = temp_soup.title.string.strip()
+            
+            for element in temp_soup(["script", "style", "header", "footer", "nav"]):
+                element.decompose()
+            body_text = temp_soup.get_text()
+            body_text = " ".join(body_text.split())
+            
+        # Extract metadata fallback content (for all sources)
+        metadata_text = extract_metadata_content(soup)
+        total_content = body_text + " " + metadata_text
+        total_content = " ".join(total_content.split())
+        
+        has_content = len(total_content) >= 500
+        
+        # Calculate best title matching similarity
+        best_extracted_title, similarity = get_best_title_similarity(article.title, soup)
+        
+        # Soft 404 check
+        if best_extracted_title and ("404" in best_extracted_title or "page not found" in best_extracted_title.lower() or "error" in best_extracted_title.lower()):
+            errors.append("404")
+
         # Check HTTP Status code
         if http_status != 200:
             errors.append(f"HTTP Status {http_status}")
             
-        if http_status == 200:
-            # 3. Parse content
-            soup = BeautifulSoup(response.content, "html.parser")
+        if not has_content:
+            errors.append("Empty Content")
             
-            page_title = ""
-            body_text = ""
+        if similarity < 80.0:
+            errors.append("Title Mismatch")
             
-            # Apply dedicated validators
-            if article.source_id == 8:
-                page_title, body_text = validate_sebi(soup)
-            elif article.source_id == 9:
-                page_title, body_text = validate_rbi(soup)
-            elif article.source_id == 10:
-                page_title, body_text = validate_irdai(soup)
-            elif article.source_id == 11:
-                page_title, body_text = validate_amfi(soup)
-                
-            # General parser fallback
-            if len(body_text) < 500:
-                temp_soup = BeautifulSoup(response.content, "html.parser")
-                if temp_soup.title and temp_soup.title.string:
-                    page_title = temp_soup.title.string.strip()
-                
-                for element in temp_soup(["script", "style", "header", "footer", "nav"]):
-                    element.decompose()
-                body_text = temp_soup.get_text()
-                body_text = " ".join(body_text.split())
-                
-            # Check content length (with metadata fallbacks)
-            metadata_text = extract_metadata_content(soup)
-            total_content = body_text + " " + metadata_text
-            total_content = " ".join(total_content.split())
-            
-            has_content = len(total_content) >= 500
-            if not has_content:
-                errors.append("Empty Content")
-                
-            # Soft 404 check
-            if not page_title and soup.title and soup.title.string:
-                page_title = soup.title.string.strip()
-                
-            if page_title:
-                if "404" in page_title or "page not found" in page_title.lower() or "error" in page_title.lower():
-                    errors.append("404")
-                    
-                similarity = calculate_similarity(article.title, page_title)
-                if similarity < 80.0:
-                    errors.append("Title Mismatch")
-            else:
-                similarity = 0.0
-                errors.append("Empty Title")
-                
-            # Check for duplicate final url
-            duplicate = db.query(Article).filter(Article.url == final_url, Article.id != article.id).first()
-            if duplicate:
-                errors.append("Duplicate Article")
+        # Check for duplicate final url
+        duplicate = db.query(Article).filter(Article.url == final_url, Article.id != article.id).first()
+        if duplicate:
+            errors.append("Duplicate Article")
 
     except requests.exceptions.Timeout:
         errors.append("Timeout")
@@ -347,23 +414,35 @@ def verify_single_article(article_id: int, db: Session) -> dict:
     if not article.published_date:
         errors.append("Missing PubDate")
 
-    # 4. Calculate Weighted Score
-    http_score = 30.0 if http_status == 200 else 0.0
-    domain_score = 30.0 if domain_correct else 0.0
-    content_score = 20.0 if (http_status == 200 and has_content) else 0.0
-    title_score = (similarity / 100.0) * 20.0 if similarity is not None else 0.0
+    # Determine status & weights
+    http_ok = (http_status == 200)
+    metadata_ok = (len(metadata_text) > 50 or has_content or bool(best_extracted_title))
     
-    total_score = http_score + domain_score + content_score + title_score
-    
-    # 5. Classify category
-    if total_score >= 90.0:
-        status = "Verified"
-    elif total_score >= 80.0:
-        status = "Verified with Minor Differences"
-    elif total_score >= 50.0:
-        status = "Needs Review"
-    else:
+    is_failed = False
+    if not http_ok and http_status != 403:
+        if not domain_correct:
+            if not metadata_ok:
+                is_failed = True
+
+    # Special rule: Business Standard 403 Metadata check
+    is_bs_metadata_pass = False
+    if (expected == "business-standard.com" or resolved_domain == "business-standard.com") and http_status == 403:
+        if gnews_decoded_ok and domain_correct and metadata_ok:
+            is_bs_metadata_pass = True
+
+    # 4. Calculate status category
+    if is_failed:
         status = "Failed"
+    elif is_bs_metadata_pass:
+        status = "Verified via Publisher Metadata"
+    elif http_status == 200 and domain_correct and has_content and similarity >= 80.0:
+        status = "Verified"
+    elif http_status == 200 and domain_correct and has_content and similarity < 80.0:
+        status = "Verified with Minor Differences"
+    elif domain_correct and metadata_ok:
+        status = "Verified via Metadata"
+    else:
+        status = "Needs Review"
 
     # Update database model fields
     article.verified = True
@@ -413,9 +492,9 @@ def run_batch_verification_task(article_ids: list):
             res = verify_single_article(art_id, db)
             
             # Update counters
-            if res["status"] in ["Verified", "Verified with Minor Differences"]:
+            if res["status"] in ["Verified", "Verified with Minor Differences", "Verified via Publisher Metadata", "Verified via Metadata"]:
                 verification_progress["verified_count"] += 1
-            elif res["status"] == "Needs Review":
+            elif res["status"] in ["Needs Review", "Warning"]:
                 verification_progress["warning_count"] += 1
             elif res["status"] == "Failed":
                 verification_progress["failed_count"] += 1
