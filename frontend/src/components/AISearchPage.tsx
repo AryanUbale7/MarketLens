@@ -205,7 +205,7 @@ export const AISearchPage: React.FC<AISearchPageProps> = ({
                     </span>
                     <span className="text-slate-400 flex items-center ml-auto font-bold">
                       <Calendar className="w-3.5 h-3.5 mr-1" />
-                      {new Date(article.created_at).toLocaleDateString(undefined, { 
+                      {new Date(article.published_date || article.created_at).toLocaleDateString(undefined, { 
                         month: 'short', 
                         day: 'numeric' 
                       }).toUpperCase()}

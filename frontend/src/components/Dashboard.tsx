@@ -421,7 +421,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div key={story.id} className="p-3 hover:bg-[#FFFDF9] transition duration-150 flex flex-col gap-1.5">
                   <div className="flex items-center space-x-1.5 text-[8.5px] font-mono text-slate-400 font-bold">
                     {renderSourceBadge(getSourceName(story.source_id))}
-                    <span>{formatTimeAgo(story.created_at)}</span>
+                    <span>{formatTimeAgo(story.published_date || story.created_at)}</span>
                   </div>
                   <h4 
                     onClick={() => onSelectArticle(story)}
@@ -444,7 +444,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span>&bull;</span>
                 <span>{getCategoryName(leadArticle.category_id)}</span>
                 <span>&bull;</span>
-                <span>{formatTimeAgo(leadArticle.created_at)}</span>
+                <span>{formatTimeAgo(leadArticle.published_date || leadArticle.created_at)}</span>
               </div>
               <h2 
                 onClick={() => onSelectArticle(leadArticle)}
@@ -564,7 +564,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div>
                     <div className="flex justify-between items-center text-[8.5px] font-mono font-bold text-slate-400 mb-1">
                       <span className="text-amber-850 bg-amber-50 px-1.5 py-0.5 border border-amber-100 rounded-sm">{getSourceName(bullet.source_id)}</span>
-                      <span>{formatTimeAgo(bullet.created_at)}</span>
+                      <span>{formatTimeAgo(bullet.published_date || bullet.created_at)}</span>
                     </div>
                     <h4 
                       onClick={() => onSelectArticle(bullet)}

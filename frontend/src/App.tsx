@@ -273,7 +273,7 @@ function App() {
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 flex items-center ml-auto font-bold">
                   <Calendar className="w-3.5 h-3.5 mr-1" />
-                  {new Date(selectedArticle.created_at).toLocaleDateString(undefined, { 
+                  {new Date(selectedArticle.published_date || selectedArticle.created_at).toLocaleDateString(undefined, { 
                     weekday: 'short', 
                     month: 'short', 
                     day: 'numeric',
