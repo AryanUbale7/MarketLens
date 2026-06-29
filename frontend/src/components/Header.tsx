@@ -188,12 +188,12 @@ export const Header: React.FC<HeaderProps> = ({
       {/* 3. MAIN NAVIGATION MENU */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex flex-wrap justify-center border-b border-slate-200" aria-label="Tabs">
+          <nav className="flex flex-nowrap overflow-x-auto no-scrollbar md:flex-wrap md:justify-center border-b border-slate-200 w-full" aria-label="Tabs">
             
             {/* Market Intelligence Dashboard */}
             <button
               onClick={() => handleNavClick('dashboard', null, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'dashboard' && selectedCategoryFilter === null && selectedSourceGroupFilter === null
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -205,7 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Wealth Creation */}
             <button
               onClick={() => handleNavClick('dashboard', 1, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'dashboard' && selectedCategoryFilter === 1 && selectedSourceGroupFilter === null
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -217,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Wealth Protection */}
             <button
               onClick={() => handleNavClick('dashboard', 2, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'dashboard' && selectedCategoryFilter === 2 && selectedSourceGroupFilter === null
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -229,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Wealth Legacy */}
             <button
               onClick={() => handleNavClick('dashboard', 3, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'dashboard' && selectedCategoryFilter === 3 && selectedSourceGroupFilter === null
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -241,7 +241,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Regulations */}
             <button
               onClick={() => handleNavClick('dashboard', null, 'regulations')}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'dashboard' && selectedSourceGroupFilter === 'regulations'
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -253,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* News Wires */}
             <button
               onClick={() => handleNavClick('articles', null, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 ${
                 activeTab === 'articles'
                   ? 'border-[#9A1C1F] text-[#9A1C1F]'
                   : 'border-transparent text-slate-600 hover:text-[#9A1C1F] hover:border-slate-300'
@@ -265,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Ask MarketLens (AI) */}
             <button
               onClick={() => handleNavClick('ai-search', null, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 flex items-center gap-1.5 ${
                 activeTab === 'ai-search'
                   ? 'border-[#059669] text-[#059669]'
                   : 'border-transparent text-slate-650 hover:text-[#059669] hover:border-slate-350'
@@ -278,7 +278,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Verification Center */}
             <button
               onClick={() => handleNavClick('admin-verification', null, null)}
-              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition-all border-b-3 cursor-pointer shrink-0 flex items-center gap-1.5 ${
                 activeTab === 'admin-verification'
                   ? 'border-[#0C1E36] text-[#0C1E36]'
                   : 'border-transparent text-slate-600 hover:text-[#0C1E36] hover:border-slate-300'
