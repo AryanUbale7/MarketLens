@@ -34,6 +34,42 @@ class ArticleResponse(BaseModel):
     resolved_domain: Optional[str] = None
     title_similarity: Optional[float] = None
     verification_errors: Optional[str] = None
+    is_fresh: bool = False
 
     class Config:
         from_attributes = True
+
+
+class AISearchResponse(BaseModel):
+    filters: dict
+    articles: list[ArticleResponse]
+
+
+class SourceHealthItem(BaseModel):
+    id: int
+    name: str
+    expected_domain: str
+    status: str
+    last_verified_at: Optional[str] = None
+
+
+class VerificationSummary(BaseModel):
+    total_checked: int
+    verified: int
+    warnings: int
+    failed: int
+    verification_score: float
+    average_response_time_ms: float
+
+
+class VerificationPagination(BaseModel):
+    total_filtered: int
+    skip: int
+    limit: int
+
+
+class VerificationResultsResponse(BaseModel):
+    summary: VerificationSummary
+    source_health: list[SourceHealthItem]
+    pagination: VerificationPagination
+    articles: list[ArticleResponse]

@@ -6,7 +6,7 @@ from typing import Optional
 from app.database.database import get_db
 from app.models.article import Article
 from app.models.source import Source
-from app.schemas.article import ArticleResponse
+from app.schemas.article import ArticleResponse, VerificationResultsResponse
 from app.services.verification_service import (
     verification_progress,
     run_batch_verification_task,
@@ -57,7 +57,7 @@ def get_progress():
     """Returns the current state and progress counters of the verification run."""
     return verification_progress
 
-@router.get("/verification-results")
+@router.get("/verification-results", response_model=VerificationResultsResponse)
 def get_results(
     status: Optional[str] = None, # 'Verified' | 'Warning' | 'Failed'
     skip: int = 0,

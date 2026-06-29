@@ -13,10 +13,42 @@ export const BreakingNewsTicker: React.FC<BreakingNewsTickerProps> = ({ onSelect
   const fetchLatestHeadlines = async () => {
     try {
       const data = await api.getArticles({
-        limit: 10,
+        limit: 100,
         skip: 0,
       });
-      setHeadlines(data);
+
+      const now = new Date().getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const twoDaysMs = 48 * 60 * 60 * 1000;
+
+      // Filter last 24 hours
+      let filtered = data.filter(a => {
+        const refTime = a.published_date ? new Date(a.published_date).getTime() : new Date(a.created_at).getTime();
+        return now - refTime <= oneDayMs;
+      });
+
+      // If insufficient (less than 5 headlines), fall back to last 48 hours
+      if (filtered.length < 5) {
+        filtered = data.filter(a => {
+          const refTime = a.published_date ? new Date(a.published_date).getTime() : new Date(a.created_at).getTime();
+          return now - refTime <= twoDaysMs;
+        });
+      }
+
+      // If still empty/insufficient, fall back to all fetched data
+      if (filtered.length === 0) {
+        filtered = data;
+      }
+
+      // Sort strictly by published_date DESC, fallback created_at DESC
+      filtered.sort((a, b) => {
+        const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+        const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
+        if (dateB !== dateA) return dateB - dateA;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setHeadlines(filtered.slice(0, 10));
     } catch (err) {
       console.error('Failed to fetch breaking news headlines:', err);
     } finally {

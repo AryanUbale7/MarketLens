@@ -67,7 +67,7 @@ def get_articles(
 
     articles = (
         query
-        .order_by(Article.published_date.desc())
+        .order_by(Article.published_date.desc().nulls_last(), Article.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -92,7 +92,7 @@ def get_article(
         )
 
     return article
-@router.get("/search/")
+@router.get("/search/", response_model=list[ArticleResponse])
 def search_articles(
     q: str,
     db: Session = Depends(get_db)
@@ -102,6 +102,6 @@ def search_articles(
             Article.title.ilike(f"%{q}%"),
             Article.summary.ilike(f"%{q}%")
         )
-    ).all()
+    ).order_by(Article.published_date.desc().nulls_last(), Article.created_at.desc()).all()
 
     return articles

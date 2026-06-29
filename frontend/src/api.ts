@@ -41,6 +41,7 @@ export interface Article {
   resolved_domain?: string | null;
   title_similarity?: number | null;
   verification_errors?: string | null;
+  is_fresh?: boolean;
 }
 
 export interface VerificationProgress {
@@ -89,6 +90,7 @@ export interface DashboardStats {
   wealth_legacy: number;
   online_sources: number;
   failed_sources: number;
+  last_sync_time?: string | null;
 }
 
 export interface FetchNewsResponse {

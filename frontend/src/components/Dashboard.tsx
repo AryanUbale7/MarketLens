@@ -104,9 +104,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [hoveredDataPoint, setHoveredDataPoint] = useState<{ index: number; x: number; y: number } | null>(null);
   const chartSvgRef = useRef<SVGSVGElement | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) {
+        setLoading(true);
+      }
       setError(null);
       
       const [statsData, newsData, catsData, srcsData, sourceDistData, healthData] = await Promise.all([
@@ -126,14 +128,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setSourceHealth(healthData);
     } catch (err: any) {
       console.error(err);
-      setError('Handshake failed. Verify the local FastAPI port 8000 server is active.');
+      if (isInitial) {
+        setError('Handshake failed. Verify the local FastAPI port 8000 server is active.');
+      }
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
+    // Poll every 30 seconds for live updates
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const getCategoryName = (id: number) => {
@@ -144,17 +153,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return sources.find(s => s.id === id)?.name || `Source ${id}`;
   };
 
-  const formatTimeAgo = (dateStr: string) => {
+  const formatTimeAgo = (dateStr: string | null | undefined) => {
+    if (!dateStr) return 'N/A';
     const d = new Date(dateStr);
     const now = new Date();
+    
+    // Reset hours to compare calendar days
+    const dDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffTime = nowDate.getTime() - dDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
     const diffMs = now.getTime() - d.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
 
-    if (diffMins < 1) return 'JUST NOW';
-    if (diffMins < 60) return `${diffMins}M AGO`;
-    if (diffHours < 24) return `${diffHours}H AGO`;
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase();
+    if (diffMins < 2) return 'JUST NOW';
+    if (diffMins < 60) return `${diffMins} MIN AGO`;
+    if (diffHours === 1) return '1 HOUR AGO';
+    if (diffHours === 3) return '3 HOURS AGO';
+    if (diffHours < 24 && diffDays === 0) return `${diffHours} HOURS AGO`;
+    if (diffDays === 0) return 'TODAY';
+    if (diffDays === 1) return 'YESTERDAY';
+    if (diffDays < 7) return `${diffDays} DAYS AGO`;
+    
+    return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()} (${diffDays} DAYS AGO)`;
   };
 
   const renderSourceBadge = (name: string) => {
@@ -256,7 +279,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h3>
           <p className="text-xs text-slate-500 mb-6 font-mono leading-relaxed">{error}</p>
           <button 
-            onClick={fetchData}
+            onClick={() => fetchData(true)}
             className="w-full bg-[#9A1C1F] hover:bg-[#801719] text-white font-bold text-xs py-2 px-4 rounded shadow-sm cursor-pointer"
           >
             RE-ESTABLISH FEED
@@ -275,23 +298,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
     displayedNews = displayedNews.filter(a => [8, 9, 10].includes(a.source_id));
   }
 
-  // 1. Featured Lead Article
-  const leadArticle = displayedNews.find(a => !!a.summary) || displayedNews[0] || null;
+  // 1. Featured Lead Article: Always select the most recent high-priority verified article.
+  // Ranking logic: Priority Score DESC, Published Date DESC, Created At DESC. Only use verified articles.
+  const heroCandidates = displayedNews.filter(a => a.verified === true);
+  const leadArticle = heroCandidates.length > 0
+    ? [...heroCandidates].sort((a, b) => {
+        if ((b.priority_score || 0) !== (a.priority_score || 0)) {
+          return (b.priority_score || 0) - (a.priority_score || 0);
+        }
+        const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+        const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
+        if (dateB !== dateA) return dateB - dateA;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })[0]
+    : null;
 
-  // 2. Latest news wire stories (Left column feed)
+  // 2. Latest news wire stories (Left column feed): Sort strictly by published_date DESC, Fallback: created_at DESC (excluding hero)
+  const sortedLatest = [...displayedNews].sort((a, b) => {
+    const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+    const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
+    if (dateB !== dateA) return dateB - dateA;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
   const latestStories = leadArticle 
-    ? displayedNews.filter(a => a.id !== leadArticle.id).slice(0, 15)
-    : displayedNews.slice(0, 15);
+    ? sortedLatest.filter(a => a.id !== leadArticle.id).slice(0, 15)
+    : sortedLatest.slice(0, 15);
+
+  // Freshness prioritization sorting: verified=true & is_fresh=true first, then verified=true & is_fresh=false, then others. Chronological fallback within tiers.
+  const sortWithFreshnessPriority = (a: Article, b: Article) => {
+    const scoreA = (a.verified ? 2 : 0) + (a.is_fresh ? 1 : 0);
+    const scoreB = (b.verified ? 2 : 0) + (b.is_fresh ? 1 : 0);
+    if (scoreB !== scoreA) {
+      return scoreB - scoreA;
+    }
+    const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+    const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
+    if (dateB !== dateA) return dateB - dateA;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  };
+
+  const prioritizedNews = [...displayedNews].sort(sortWithFreshnessPriority);
 
   // 3. Regulatory compliance bulletins (RBI, SEBI, IRDAI updates)
-  const regulatoryFeed = displayedNews
+  const regulatoryFeed = prioritizedNews
     .filter(a => [8, 9, 10].includes(a.source_id))
     .slice(0, 6);
 
   // 4. Sector focus news for center column when no category is selected
-  const category1News = allNews.filter(a => a.category_id === 1).slice(0, 4);
-  const category2News = allNews.filter(a => a.category_id === 2).slice(0, 4);
-  const category3News = allNews.filter(a => a.category_id === 3).slice(0, 4);
+  const category1News = prioritizedNews.filter(a => a.category_id === 1).slice(0, 4);
+  const category2News = prioritizedNews.filter(a => a.category_id === 2).slice(0, 4);
+  const category3News = prioritizedNews.filter(a => a.category_id === 3).slice(0, 4);
 
   const activeIndex = HISTORICAL_DATA[selectedChartIndex];
   const chartHeight = 180;
@@ -552,13 +609,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* Online / Failed sources */}
             <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[8px] font-mono text-slate-400 font-bold block uppercase font-bold">Sources online</span>
+                <span className="text-[8px] font-mono text-slate-400 font-bold block uppercase">Sources online</span>
                 <span className="text-2xl font-bold text-emerald-700 tracking-tight">{stats?.online_sources || 0}</span>
               </div>
               <div>
-                <span className="text-[8px] font-mono text-slate-400 font-bold block uppercase font-bold">Sources failed</span>
+                <span className="text-[8px] font-mono text-slate-400 font-bold block uppercase">Sources failed</span>
                 <span className="text-2xl font-bold text-[#9A1C1F] tracking-tight">{stats?.failed_sources || 0}</span>
               </div>
+            </div>
+
+            {/* Latest Sync Time */}
+            <div className="border-b border-slate-100 pb-3">
+              <span className="text-[8px] font-mono text-slate-400 font-bold block uppercase">Last Updated</span>
+              <span className="text-xs font-mono font-bold text-slate-700 block mt-1">
+                {stats?.last_sync_time ? formatTimeAgo(stats.last_sync_time) : 'N/A'}
+              </span>
             </div>
 
             {/* Source Ingestion table */}

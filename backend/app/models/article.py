@@ -27,6 +27,11 @@ class Article(Base):
     http_status = Column(Integer, nullable=True)
     resolved_domain = Column(String(250), nullable=True)
     title_similarity = Column(Float, nullable=True)
-    verification_errors = Column(Text, nullable=True)
-
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def is_fresh(self) -> bool:
+        ref_date = self.published_date or self.created_at
+        if not ref_date:
+            return False
+        return (datetime.utcnow() - ref_date).total_seconds() < 86400

@@ -4,6 +4,7 @@ from sqlalchemy import func
 from app.database.database import get_db
 from app.models.article import Article
 from app.models.source import Source
+from app.schemas.article import ArticleResponse
 
 router = APIRouter()
 
@@ -52,6 +53,10 @@ def dashboard_stats(
     online_sources = sum(1 for s in all_sources if s.last_fetch_status == "online")
     failed_sources = sum(1 for s in all_sources if s.last_fetch_status and s.last_fetch_status != "online")
 
+    # Latest sync time across all sources
+    latest_sync = db.query(func.max(Source.last_fetched_at)).scalar()
+    last_sync_time = latest_sync.isoformat() if latest_sync else None
+
     return {
         "total_articles": total_articles,
         "wealth_creation": wealth_creation,
@@ -59,17 +64,18 @@ def dashboard_stats(
         "wealth_legacy": wealth_legacy,
         "source_distribution": source_distribution,
         "online_sources": online_sources,
-        "failed_sources": failed_sources
+        "failed_sources": failed_sources,
+        "last_sync_time": last_sync_time
     }
 
 
-@router.get("/latest")
+@router.get("/latest", response_model=list[ArticleResponse])
 def latest_news(
     db: Session = Depends(get_db)
 ):
     articles = (
         db.query(Article)
-        .order_by(Article.published_date.desc())
+        .order_by(Article.published_date.desc().nulls_last(), Article.created_at.desc())
         .limit(10)
         .all()
     )

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from app.schemas.article import AISearchResponse
 
 from app.database.database import get_db
 from app.services.article_processor import process_article
@@ -26,7 +27,7 @@ def process_all_articles_ai(
 ):
     return process_all_articles(db, limit)
 
-@router.get("/ai/search")
+@router.get("/ai/search", response_model=AISearchResponse)
 def ai_search(
     query: str,
     db: Session = Depends(get_db)
@@ -50,7 +51,7 @@ def ai_search(
         search_term = f"%{filters['q']}%"
         db_query = db_query.filter(Article.title.ilike(search_term) | Article.summary.ilike(search_term))
         
-    articles = db_query.order_by(Article.created_at.desc()).limit(50).all()
+    articles = db_query.order_by(Article.published_date.desc().nulls_last(), Article.created_at.desc()).limit(50).all()
     
     return {
         "filters": filters,
