@@ -70,7 +70,13 @@ def parse_published_date(entry) -> datetime:
             try:
                 dt = email.utils.parsedate_to_datetime(val)
                 if dt:
-                    return dt.replace(tzinfo=None)
+                    if dt.tzinfo is not None:
+                        from datetime import timezone
+                        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+                    else:
+                        from datetime import timedelta
+                        # Naive feed dates from Indian official sources are assumed to be in IST
+                        return dt - timedelta(hours=5, minutes=30)
             except Exception:
                 pass
     
