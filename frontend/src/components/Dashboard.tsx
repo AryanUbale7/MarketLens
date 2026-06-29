@@ -153,9 +153,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return sources.find(s => s.id === id)?.name || `Source ${id}`;
   };
 
+  const parseDateUTC = (dateStr: string | null | undefined) => {
+    if (!dateStr) return new Date(0);
+    const isoStr = (!dateStr.endsWith('Z') && !dateStr.includes('+')) ? dateStr + 'Z' : dateStr;
+    return new Date(isoStr);
+  };
+
   const formatTimeAgo = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
-    const d = new Date(dateStr);
+    const d = parseDateUTC(dateStr);
     const now = new Date();
     
     // Reset hours to compare calendar days
@@ -306,19 +312,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         if ((b.priority_score || 0) !== (a.priority_score || 0)) {
           return (b.priority_score || 0) - (a.priority_score || 0);
         }
-        const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
-        const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
-        if (dateB !== dateA) return dateB - dateA;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const dateB = parseDateUTC(b.published_date || b.created_at).getTime();
+        const dateA = parseDateUTC(a.published_date || a.created_at).getTime();
+        return dateB - dateA;
       })[0]
     : null;
 
   // 2. Latest news wire stories (Left column feed): Sort strictly by published_date DESC, Fallback: created_at DESC (excluding hero)
   const sortedLatest = [...displayedNews].sort((a, b) => {
-    const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
-    const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
-    if (dateB !== dateA) return dateB - dateA;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    const dateB = parseDateUTC(b.published_date || b.created_at).getTime();
+    const dateA = parseDateUTC(a.published_date || a.created_at).getTime();
+    return dateB - dateA;
   });
 
   const latestStories = leadArticle 
@@ -332,10 +336,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (scoreB !== scoreA) {
       return scoreB - scoreA;
     }
-    const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
-    const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
-    if (dateB !== dateA) return dateB - dateA;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    const dateB = parseDateUTC(b.published_date || b.created_at).getTime();
+    const dateA = parseDateUTC(a.published_date || a.created_at).getTime();
+    return dateB - dateA;
   };
 
   const prioritizedNews = [...displayedNews].sort(sortWithFreshnessPriority);

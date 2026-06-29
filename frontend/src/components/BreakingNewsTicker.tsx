@@ -21,16 +21,22 @@ export const BreakingNewsTicker: React.FC<BreakingNewsTickerProps> = ({ onSelect
       const oneDayMs = 24 * 60 * 60 * 1000;
       const twoDaysMs = 48 * 60 * 60 * 1000;
 
+      const parseDateUTC = (dateStr: string | null | undefined) => {
+        if (!dateStr) return 0;
+        const isoStr = (!dateStr.endsWith('Z') && !dateStr.includes('+')) ? dateStr + 'Z' : dateStr;
+        return new Date(isoStr).getTime();
+      };
+
       // Filter last 24 hours
       let filtered = data.filter(a => {
-        const refTime = a.published_date ? new Date(a.published_date).getTime() : new Date(a.created_at).getTime();
+        const refTime = parseDateUTC(a.published_date || a.created_at);
         return now - refTime <= oneDayMs;
       });
 
       // If insufficient (less than 5 headlines), fall back to last 48 hours
       if (filtered.length < 5) {
         filtered = data.filter(a => {
-          const refTime = a.published_date ? new Date(a.published_date).getTime() : new Date(a.created_at).getTime();
+          const refTime = parseDateUTC(a.published_date || a.created_at);
           return now - refTime <= twoDaysMs;
         });
       }
@@ -42,10 +48,9 @@ export const BreakingNewsTicker: React.FC<BreakingNewsTickerProps> = ({ onSelect
 
       // Sort strictly by published_date DESC, fallback created_at DESC
       filtered.sort((a, b) => {
-        const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
-        const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
-        if (dateB !== dateA) return dateB - dateA;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const dateB = parseDateUTC(b.published_date || b.created_at);
+        const dateA = parseDateUTC(a.published_date || a.created_at);
+        return dateB - dateA;
       });
 
       setHeadlines(filtered.slice(0, 10));

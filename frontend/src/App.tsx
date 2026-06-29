@@ -273,13 +273,17 @@ function App() {
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 flex items-center ml-auto font-bold">
                   <Calendar className="w-3.5 h-3.5 mr-1" />
-                  {new Date(selectedArticle.published_date || selectedArticle.created_at).toLocaleDateString(undefined, { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }).toUpperCase()}
+                  {(() => {
+                    const dateStr = selectedArticle.published_date || selectedArticle.created_at;
+                    const isoStr = dateStr && (!dateStr.endsWith('Z') && !dateStr.includes('+')) ? dateStr + 'Z' : dateStr;
+                    return dateStr ? new Date(isoStr).toLocaleDateString(undefined, { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }).toUpperCase() : 'N/A';
+                  })()}
                 </span>
               </div>
 

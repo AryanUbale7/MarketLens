@@ -136,7 +136,8 @@ export const ArticlesPage: React.FC<ArticlesPageProps> = ({
 
   const formatPublishDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
+    const isoStr = (!dateStr.endsWith('Z') && !dateStr.includes('+')) ? dateStr + 'Z' : dateStr;
+    const date = new Date(isoStr);
     return date.toLocaleDateString(undefined, { 
       month: 'short', 
       day: 'numeric',
